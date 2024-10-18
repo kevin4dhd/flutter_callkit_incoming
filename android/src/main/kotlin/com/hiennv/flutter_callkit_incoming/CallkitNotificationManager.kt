@@ -151,7 +151,7 @@ class CallkitNotificationManager(private val context: Context) {
         val isCustomSmallExNotification =
             data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_CUSTOM_SMALL_EX_NOTIFICATION, false)
         val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        val isAvatar = false
+        var isAvatar = false
         if(avatarUrl != null && avatarUrl.isNotEmpty()){
             isAvatar = true
         }
@@ -316,7 +316,7 @@ class CallkitNotificationManager(private val context: Context) {
             notificationBuilder.setNumber(count)
         }
         val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        val isAvatar = false
+        var isAvatar = false
         if(avatarUrl != null && avatarUrl.isNotEmpty()){
             isAvatar = true
         }
