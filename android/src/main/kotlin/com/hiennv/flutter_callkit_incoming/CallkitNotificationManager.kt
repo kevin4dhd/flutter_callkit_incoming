@@ -315,6 +315,7 @@ class CallkitNotificationManager(private val context: Context) {
         if (count > 1) {
             notificationBuilder.setNumber(count)
         }
+        val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
         val isAvatar = false
         if(avatarUrl != null && avatarUrl.isNotEmpty()){
             isAvatar = true
@@ -353,7 +354,6 @@ class CallkitNotificationManager(private val context: Context) {
                 if (TextUtils.isEmpty(textCallback)) context.getString(R.string.text_call_back) else textCallback
             )
 
-            val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
             if (avatarUrl != null && avatarUrl.isNotEmpty()) {
                 val headers =
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
