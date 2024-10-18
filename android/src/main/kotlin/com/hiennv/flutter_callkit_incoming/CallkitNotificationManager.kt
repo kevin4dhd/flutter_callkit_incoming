@@ -174,6 +174,14 @@ class CallkitNotificationManager(private val context: Context) {
                 initNotificationViews(notificationSmallViews!!, data)
             }
 
+            if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+                val headers =
+                    data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
+                getPicassoInstance(context, headers).load(avatarUrl)
+                    .transform(CircleTransform())
+                    .into(targetLoadAvatarCustomize)
+            }
+
             notificationBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
             notificationBuilder.setCustomContentView(notificationSmallViews)
             notificationBuilder.setCustomBigContentView(notificationViews)
@@ -263,14 +271,6 @@ class CallkitNotificationManager(private val context: Context) {
             R.id.tvAccept,
             if (TextUtils.isEmpty(textAccept)) context.getString(R.string.text_accept) else textAccept
         )
-        val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        if (avatarUrl != null && avatarUrl.isNotEmpty()) {
-            val headers =
-                data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-            getPicassoInstance(context, headers).load(avatarUrl)
-                .transform(CircleTransform())
-                .into(targetLoadAvatarCustomize)
-        }
     }
 
     @SuppressLint("MissingPermission")
