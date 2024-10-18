@@ -62,6 +62,7 @@ class CallkitNotificationManager(private val context: Context) {
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+            getNotificationManager().notify(notificationId, notificationBuilder.build())
         }
 
         override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
@@ -79,6 +80,7 @@ class CallkitNotificationManager(private val context: Context) {
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+            getNotificationManager().notify(notificationId, notificationBuilder.build())
         }
 
         override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
@@ -148,6 +150,11 @@ class CallkitNotificationManager(private val context: Context) {
             data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_CUSTOM_NOTIFICATION, false)
         val isCustomSmallExNotification =
             data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_CUSTOM_SMALL_EX_NOTIFICATION, false)
+        val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
+        val isAvatar = false
+        if(avatarUrl != null && avatarUrl.isNotEmpty()){
+            isAvatar = true
+        }
         if (isCustomNotification) {
             notificationViews =
                 RemoteViews(context.packageName, R.layout.layout_custom_notification)
@@ -178,7 +185,6 @@ class CallkitNotificationManager(private val context: Context) {
                     ""
                 )
             )
-            val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
             if (avatarUrl != null && avatarUrl.isNotEmpty()) {
                 val headers =
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
@@ -222,7 +228,9 @@ class CallkitNotificationManager(private val context: Context) {
         }
         val notification = notificationBuilder.build()
         notification.flags = Notification.FLAG_INSISTENT
-        getNotificationManager().notify(notificationId, notification)
+        if(!isAvatar){
+            getNotificationManager().notify(notificationId, notification)
+        }
     }
 
     private fun initNotificationViews(remoteViews: RemoteViews, data: Bundle) {
@@ -306,6 +314,10 @@ class CallkitNotificationManager(private val context: Context) {
         val count = data.getInt(CallkitConstants.EXTRA_CALLKIT_MISSED_CALL_COUNT, 1)
         if (count > 1) {
             notificationBuilder.setNumber(count)
+        }
+        val isAvatar = false
+        if(avatarUrl != null && avatarUrl.isNotEmpty()){
+            isAvatar = true
         }
         if (isCustomNotification) {
             notificationViews =
@@ -401,13 +413,15 @@ class CallkitNotificationManager(private val context: Context) {
         } catch (_: Exception) {
         }
         val notification = notificationBuilder.build()
-        getNotificationManager().notify(missedNotificationId, notification)
-        Handler(Looper.getMainLooper()).postDelayed({
-            try {
-                getNotificationManager().notify(missedNotificationId, notification)
-            } catch (_: Exception) {
-            }
-        }, 1000)
+        if(!isAvatar){
+            getNotificationManager().notify(missedNotificationId, notification)
+            Handler(Looper.getMainLooper()).postDelayed({
+                try {
+                    getNotificationManager().notify(missedNotificationId, notification)
+                } catch (_: Exception) {
+                }
+            }, 1000)
+        }
     }
 
 
