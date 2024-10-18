@@ -52,6 +52,7 @@ class CallkitNotificationManager(private val context: Context) {
     private var notificationSmallViews: RemoteViews? = null
     private var notificationId: Int = 9696
     private var dataNotificationPermission: Map<String, Any> = HashMap()
+    private val activeNotifications: MutableMap<Int, Boolean> = mutableMapOf()
 
     @SuppressLint("MissingPermission")
     private var targetLoadAvatarDefault = object : Target {
@@ -72,21 +73,32 @@ class CallkitNotificationManager(private val context: Context) {
     @SuppressLint("MissingPermission")
     private var targetLoadAvatarCustomize = object : Target {
         override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-            notificationViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
-            notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
-            notificationSmallViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
-            notificationSmallViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
-            getNotificationManager().notify(notificationId, notificationBuilder.build())
+            if (activeNotifications.containsKey(notificationId)) {
+                notificationViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
+                notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
+                notificationSmallViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
+                notificationSmallViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
+                getNotificationManager().notify(notificationId, notificationBuilder.build())
+            }
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-            getNotificationManager().notify(notificationId, notificationBuilder.build())
+            if (activeNotifications.containsKey(notificationId)) {
+                getNotificationManager().notify(notificationId, notificationBuilder.build())
+            }
         }
 
         override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
         }
     }
 
+    fun clearIncomingNotification(data: Bundle, isAccepted: Boolean) {
+        context.sendBroadcast(CallkitIncomingActivity.getIntentEnded(context, isAccepted))
+        notificationId =
+            data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
+        activeNotifications.remove(notificationId)
+        getNotificationManager().cancel(notificationId)
+    }
 
     @SuppressLint("MissingPermission")
     fun showIncomingNotification(data: Bundle) {
@@ -94,6 +106,8 @@ class CallkitNotificationManager(private val context: Context) {
 
         notificationId =
             data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
+        activeNotifications[notificationId] = true
+
         createNotificationChanel(
             data.getString(
                 CallkitConstants.EXTRA_CALLKIT_INCOMING_CALL_NOTIFICATION_CHANNEL_NAME,
@@ -421,14 +435,6 @@ class CallkitNotificationManager(private val context: Context) {
                 }
             }, 1000)
         }
-    }
-
-
-    fun clearIncomingNotification(data: Bundle, isAccepted: Boolean) {
-        context.sendBroadcast(CallkitIncomingActivity.getIntentEnded(context, isAccepted))
-        notificationId =
-            data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
-        getNotificationManager().cancel(notificationId)
     }
 
     fun clearMissCallNotification(data: Bundle) {
