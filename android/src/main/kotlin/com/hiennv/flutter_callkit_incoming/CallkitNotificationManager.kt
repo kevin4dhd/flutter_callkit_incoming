@@ -175,10 +175,6 @@ class CallkitNotificationManager(private val context: Context) {
         val isCustomSmallExNotification =
             data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_CUSTOM_SMALL_EX_NOTIFICATION, false)
         val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        var isAvatar = false
-        if(avatarUrl != null && avatarUrl.isNotEmpty()){
-            isAvatar = true
-        }
         if (isCustomNotification) {
             notificationViews =
                 RemoteViews(context.packageName, R.layout.layout_custom_notification)
@@ -260,7 +256,7 @@ class CallkitNotificationManager(private val context: Context) {
         }
         val notification = notificationBuilder.build()
         notification.flags = Notification.FLAG_INSISTENT
-        if(!isAvatar){
+        if (!finalizedIds.contains(notificationId) && activeNotifications.containsKey(notificationId)) {
             getNotificationManager().notify(notificationId, notification)
         }
     }
