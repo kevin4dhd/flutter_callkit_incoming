@@ -106,10 +106,12 @@ class CallkitNotificationManager(private val context: Context) {
                 notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
                 notificationSmallViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
                 notificationSmallViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
+                notificationBuilder.setSound(null)
                 getNotificationManager().notify(id, notificationBuilder.build())
             }
     
             override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                notificationBuilder.setSound(null)
                 getNotificationManager().notify(id, notificationBuilder.build())
             }
     
