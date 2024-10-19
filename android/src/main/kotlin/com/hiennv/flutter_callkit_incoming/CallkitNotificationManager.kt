@@ -56,8 +56,6 @@ class CallkitNotificationManager(private val context: Context) {
     private var dataNotificationPermission: Map<String, Any> = HashMap()
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    private var finalizedIds: MutableList<Int> = loadFinalizedIds()
-    private var activeNotifications: MutableMap<Int, Boolean> = loadActiveNotifications()
 
     @SuppressLint("MissingPermission")
     private var targetLoadAvatarDefault = object : Target {
