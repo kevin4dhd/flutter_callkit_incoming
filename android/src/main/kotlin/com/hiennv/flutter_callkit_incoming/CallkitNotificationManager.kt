@@ -370,10 +370,6 @@ class CallkitNotificationManager(private val context: Context) {
             notificationBuilder.setNumber(count)
         }
         val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        var isAvatar = false
-        if(avatarUrl != null && avatarUrl.isNotEmpty()){
-            isAvatar = true
-        }
         if (isCustomNotification) {
             notificationViews =
                 RemoteViews(context.packageName, R.layout.layout_custom_miss_notification)
@@ -466,15 +462,13 @@ class CallkitNotificationManager(private val context: Context) {
         } catch (_: Exception) {
         }
         val notification = notificationBuilder.build()
-        if(!isAvatar){
-            getNotificationManager().notify(missedNotificationId, notification)
-            Handler(Looper.getMainLooper()).postDelayed({
-                try {
-                    getNotificationManager().notify(missedNotificationId, notification)
-                } catch (_: Exception) {
-                }
-            }, 1000)
-        }
+        getNotificationManager().notify(missedNotificationId, notification)
+        Handler(Looper.getMainLooper()).postDelayed({
+            try {
+                getNotificationManager().notify(missedNotificationId, notification)
+            } catch (_: Exception) {
+            }
+        }, 1000)
     }
 
     fun clearMissCallNotification(data: Bundle) {
