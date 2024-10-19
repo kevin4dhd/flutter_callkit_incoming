@@ -116,6 +116,7 @@ class CallkitNotificationManager(private val context: Context) {
             data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
             
         if (isNotificationFinalized(notificationId)) {
+            context.sendBroadcast(CallkitIncomingActivity.getIntentEnded(context, false))
             getNotificationManager().cancel(notificationId)
             return
         }
