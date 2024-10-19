@@ -99,6 +99,25 @@ class CallkitNotificationManager(private val context: Context) {
         }
     }
 
+    private fun createTargetLoadAvatarCustomize(id: Int): Target {
+        return object : Target {
+            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                notificationViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
+                notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
+                notificationSmallViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
+                notificationSmallViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
+                getNotificationManager().notify(id, notificationBuilder.build())
+            }
+    
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                getNotificationManager().notify(id, notificationBuilder.build())
+            }
+    
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+            }
+        }
+    }
+
     fun clearIncomingNotification(data: Bundle, isAccepted: Boolean) {
         context.sendBroadcast(CallkitIncomingActivity.getIntentEnded(context, isAccepted))
         notificationId =
@@ -409,7 +428,7 @@ class CallkitNotificationManager(private val context: Context) {
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
                 getPicassoInstance(context, headers).load(avatarUrl)
-                    .transform(CircleTransform()).into(targetLoadAvatarCustomize)
+                    .transform(CircleTransform()).into(createTargetLoadAvatarCustomize(missedNotificationId))
             }
             notificationBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
             notificationBuilder.setCustomContentView(notificationViews)
@@ -463,12 +482,6 @@ class CallkitNotificationManager(private val context: Context) {
         }
         val notification = notificationBuilder.build()
         getNotificationManager().notify(missedNotificationId, notification)
-        Handler(Looper.getMainLooper()).postDelayed({
-            try {
-                getNotificationManager().notify(missedNotificationId, notification)
-            } catch (_: Exception) {
-            }
-        }, 1000)
     }
 
     fun clearMissCallNotification(data: Bundle) {
