@@ -118,11 +118,12 @@ class CallkitNotificationManager(private val context: Context) {
         if (isNotificationFinalized(notificationId)) {
             Handler(Looper.getMainLooper()).postDelayed({
                 try {
+                    context?.stopService(Intent(context, CallkitSoundPlayerService::class.java))
                     context.sendBroadcast(CallkitIncomingActivity.getIntentEnded(context, false))
                     getNotificationManager().cancel(notificationId)
                 } catch (_: Exception) {
                 }
-            }, 1000)
+            }, 100)
             return
         }
         setNotificationActive(notificationId)
