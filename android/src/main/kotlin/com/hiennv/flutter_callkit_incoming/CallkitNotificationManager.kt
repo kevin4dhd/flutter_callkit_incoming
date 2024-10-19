@@ -586,12 +586,6 @@ class CallkitNotificationManager(private val context: Context) {
         }
     }
 
-
-    private fun getNotificationManager(): NotificationManagerCompat {
-        return NotificationManagerCompat.from(context)
-    }
-
-
     private fun getPicassoInstance(context: Context, headers: HashMap<String, Any?>): Picasso {
         val client = OkHttpClient.Builder()
             .addNetworkInterceptor { chain ->
