@@ -45,6 +45,7 @@ class CallkitNotificationManager(private val context: Context) {
 
         private const val NOTIFICATION_CHANNEL_ID_INCOMING = "callkit_incoming_channel_id"
         private const val NOTIFICATION_CHANNEL_ID_MISSED = "callkit_missed_channel_id"
+        private const val PREFS_NAME = "callkit_prefs"
     }
 
     private lateinit var notificationBuilder: NotificationCompat.Builder
@@ -53,21 +54,22 @@ class CallkitNotificationManager(private val context: Context) {
     private var notificationId: Int = 9696
     private var dataNotificationPermission: Map<String, Any> = HashMap()
 
-    private val activeNotifications: MutableMap<Int, Boolean> = mutableMapOf()
-    private val finalizedIds: MutableList<Int> = mutableListOf()
+    private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private var finalizedIds: MutableList<Int> = loadFinalizedIds()
+    private var activeNotifications: MutableMap<Int, Boolean> = loadActiveNotifications()
 
     @SuppressLint("MissingPermission")
     private var targetLoadAvatarDefault = object : Target {
 
         override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-            if (!finalizedIds.contains(notificationId) && activeNotifications.containsKey(notificationId)) {
+            if (!isNotificationFinalized(notificationId) && isNotificationActive(notificationId)) {
                 notificationBuilder.setLargeIcon(bitmap)
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
             }
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-            if (!finalizedIds.contains(notificationId) && activeNotifications.containsKey(notificationId)) {
+            if (!isNotificationFinalized(notificationId) && isNotificationActive(notificationId)) {
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
             }
         }
@@ -79,7 +81,7 @@ class CallkitNotificationManager(private val context: Context) {
     @SuppressLint("MissingPermission")
     private var targetLoadAvatarCustomize = object : Target {
         override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-            if (!finalizedIds.contains(notificationId) && activeNotifications.containsKey(notificationId)) {
+            if (!isNotificationFinalized(notificationId) && isNotificationActive(notificationId)) {
                 notificationViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
                 notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
                 notificationSmallViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
@@ -89,7 +91,7 @@ class CallkitNotificationManager(private val context: Context) {
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-            if (!finalizedIds.contains(notificationId) && activeNotifications.containsKey(notificationId)) {
+            if (!isNotificationFinalized(notificationId) && isNotificationActive(notificationId)) {
                 getNotificationManager().notify(notificationId, notificationBuilder.build())
             }
         }
@@ -102,8 +104,8 @@ class CallkitNotificationManager(private val context: Context) {
         context.sendBroadcast(CallkitIncomingActivity.getIntentEnded(context, isAccepted))
         notificationId =
             data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
-         finalizedIds.add(notificationId)
-         activeNotifications.remove(notificationId)
+        setNotificationFinalized(notificationId)
+        removeNotificationActive(notificationId)
         getNotificationManager().cancel(notificationId)
     }
 
@@ -113,10 +115,11 @@ class CallkitNotificationManager(private val context: Context) {
 
         notificationId =
             data.getString(CallkitConstants.EXTRA_CALLKIT_ID, "callkit_incoming").hashCode()
-        if (finalizedIds.contains(notificationId)) {
+            
+        if (isNotificationFinalized(notificationId)) {
             return
         }
-        activeNotifications[notificationId] = true
+        setNotificationActive(notificationId)
 
         createNotificationChanel(
             data.getString(
@@ -256,9 +259,33 @@ class CallkitNotificationManager(private val context: Context) {
         }
         val notification = notificationBuilder.build()
         notification.flags = Notification.FLAG_INSISTENT
-        if (!finalizedIds.contains(notificationId) && activeNotifications.containsKey(notificationId)) {
+        if (!isNotificationFinalized(notificationId) && isNotificationActive(notificationId)) {
             getNotificationManager().notify(notificationId, notification)
         }
+    }
+
+    private fun getNotificationManager(): NotificationManagerCompat {
+        return NotificationManagerCompat.from(context)
+    }
+
+    private fun isNotificationFinalized(notificationId: Int): Boolean {
+        return sharedPreferences.getBoolean("call_finalized_$notificationId", false)
+    }
+
+    private fun setNotificationFinalized(notificationId: Int) {
+        sharedPreferences.edit().putBoolean("call_finalized_$notificationId", true).apply()
+    }
+
+    private fun isNotificationActive(notificationId: Int): Boolean {
+        return sharedPreferences.getBoolean("call_active_$notificationId", false)
+    }
+
+    private fun setNotificationActive(notificationId: Int) {
+        sharedPreferences.edit().putBoolean("call_active_$notificationId", true).apply()
+    }
+
+    private fun removeNotificationActive(notificationId: Int) {
+        sharedPreferences.edit().remove("call_active_$notificationId").apply()
     }
 
     private fun initNotificationViews(remoteViews: RemoteViews, data: Bundle) {
